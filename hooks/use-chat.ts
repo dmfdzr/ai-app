@@ -11,13 +11,24 @@ import type {
 const FALLBACK_ERROR =
   "Jawaban belum berhasil dimuat. Periksa koneksi lalu coba lagi."
 
+let messageSequence = 0
+
+function createMessageId(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID()
+  }
+
+  messageSequence += 1
+  return `message-${Date.now().toString(36)}-${messageSequence.toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
 function createMessage(
   role: ChatRole,
   content: string,
   extra: Pick<ChatMessage, "status" | "prompt"> = {}
 ): ChatMessage {
   return {
-    id: crypto.randomUUID(),
+    id: createMessageId(),
     role,
     content,
     ...extra,
