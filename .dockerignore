@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.agents
+AGENTS.md
+DESIGN.md
+ARCHITECTURE.md
+PRD.md
+RULES.md
+MASTER.md
+.env*
+!.env.example
+npm-debug.log*
+Dockerfile*
+docker-compose*.yml
+README.md

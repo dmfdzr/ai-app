@@ -30,7 +30,20 @@ pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# skills
+.agents
+skills-lock.json
+AGENTS.md
+
+# local project specifications
+DESIGN.md
+ARCHITECTURE.md
+PRD.md
+RULES.md
+MASTER.md
