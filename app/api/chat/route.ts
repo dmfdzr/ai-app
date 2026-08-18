@@ -12,7 +12,6 @@ const INTENTIONAL_BUG_PATTERN = /\blindo\b/i
 
 interface ChatLogEntry {
   conversationId: string | null
-  workflowId: string | null
   input: string
   backendResponse: unknown
 }
@@ -28,7 +27,6 @@ function writeChatLog(entry: ChatLogEntry): void {
   const logEntry = {
     timestamp: new Date().toISOString(),
     conversation_id: entry.conversationId,
-    workflow_id: entry.workflowId,
     user_input: entry.input,
     backend_response: entry.backendResponse,
   }
@@ -78,7 +76,6 @@ export async function POST(request: Request) {
     const errorMessage = "Pesan tidak valid."
     writeChatLog({
       conversationId: null,
-      workflowId: null,
       input: "",
       backendResponse: { error: errorMessage },
     })
@@ -88,7 +85,6 @@ export async function POST(request: Request) {
   const logAndReturnError = (errorMessage: string, status: number) => {
     writeChatLog({
       conversationId: chatRequest.conversationId || null,
-      workflowId: null,
       input: chatRequest.message,
       backendResponse: { error: errorMessage },
     })
@@ -104,7 +100,6 @@ export async function POST(request: Request) {
     const response = await sendDifyMessage(difyPayload)
     writeChatLog({
       conversationId: response.conversationId,
-      workflowId: response.workflowId ?? null,
       input: chatRequest.message,
       backendResponse: {
         answer: response.answer,

@@ -22,9 +22,7 @@ function isDifyChatResponse(payload: unknown): payload is DifyChatResponse {
   const candidate = payload as Record<string, unknown>
   return (
     typeof candidate.answer === "string" &&
-    typeof candidate.conversation_id === "string" &&
-    (candidate.workflow_run_id === undefined ||
-      typeof candidate.workflow_run_id === "string")
+    typeof candidate.conversation_id === "string"
   )
 }
 
@@ -72,6 +70,5 @@ export async function sendDifyMessage(
   return {
     answer: payload.answer,
     conversationId: payload.conversation_id,
-    workflowId: payload.workflow_run_id,
   }
 }

@@ -9,5 +9,4 @@ export interface DifyChatRequestBody {
 export interface DifyChatResponse {
   answer: string
   conversation_id: string
-  workflow_run_id?: string
 }
