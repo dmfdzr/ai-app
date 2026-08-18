@@ -14,6 +14,7 @@ interface ChatLogEntry {
   conversationId: string | null
   input: string
   backendResponse: unknown
+  status: number
 }
 
 class IntentionalLindoError extends Error {
@@ -29,6 +30,7 @@ function writeChatLog(entry: ChatLogEntry): void {
     conversation_id: entry.conversationId,
     user_input: entry.input,
     backend_response: entry.backendResponse,
+    status: entry.status,
   }
 
   const serializedEntry = JSON.stringify(logEntry, null, 2)
@@ -78,6 +80,7 @@ export async function POST(request: Request) {
       conversationId: null,
       input: "",
       backendResponse: { error: errorMessage },
+      status: 400,
     })
     return jsonError(errorMessage, 400)
   }
@@ -87,6 +90,7 @@ export async function POST(request: Request) {
       conversationId: chatRequest.conversationId || null,
       input: chatRequest.message,
       backendResponse: { error: errorMessage },
+      status,
     })
     return jsonError(errorMessage, status)
   }
@@ -105,6 +109,7 @@ export async function POST(request: Request) {
         answer: response.answer,
         conversation_id: response.conversationId,
       },
+      status: 200,
     })
     return Response.json(response satisfies ChatResponse)
   } catch (error) {

@@ -133,9 +133,9 @@ Endpoint ini tidak menerima GET. Respons `405 Method Not Allowed` saat membuka
 
 Setiap request chat ditulis sebagai structured JSON ke stdout/stderr dan dapat
 dilihat melalui `docker logs`. Log hanya memuat timestamp, conversation ID, input
-user, serta jawaban dan conversation ID dari Dify. Input yang mengandung kata
-`Lindo` (case-insensitive) sengaja menghasilkan HTTP 500 untuk pengujian alur
-error.
+user, jawaban dan conversation ID dari Dify, serta status HTTP. Input yang
+mengandung kata `Lindo` (case-insensitive) sengaja menghasilkan HTTP 500 untuk
+pengujian alur error.
 
 ### Health check
 
