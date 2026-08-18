@@ -16,6 +16,7 @@ export interface ChatRequest {
 export interface ChatResponse {
   answer: string
   conversationId: string
+  workflowId?: string
 }
 
 export interface ApiError {

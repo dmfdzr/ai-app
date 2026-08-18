@@ -14,6 +14,11 @@ export class DifyResponseError extends Error {
   }
 }
 
+export interface DifyChatExchange {
+  response: ChatResponse
+  rawResponse: DifyChatResponse
+}
+
 function isDifyChatResponse(payload: unknown): payload is DifyChatResponse {
   if (!payload || typeof payload !== "object") {
     return false
@@ -22,22 +27,29 @@ function isDifyChatResponse(payload: unknown): payload is DifyChatResponse {
   const candidate = payload as Record<string, unknown>
   return (
     typeof candidate.answer === "string" &&
-    typeof candidate.conversation_id === "string"
+    typeof candidate.conversation_id === "string" &&
+    (candidate.workflow_run_id === undefined ||
+      typeof candidate.workflow_run_id === "string")
   )
 }
 
-export async function sendDifyMessage({
+export function createDifyRequestBody({
   message,
   conversationId = "",
-}: ChatRequest): Promise<ChatResponse> {
-  const { apiUrl, apiKey } = getDifyConfig()
-  const requestBody: DifyChatRequestBody = {
+}: ChatRequest): DifyChatRequestBody {
+  return {
     inputs: {},
     query: message,
     response_mode: "blocking",
     conversation_id: conversationId,
     user: "mini-ai-user",
   }
+}
+
+export async function sendDifyMessage(
+  requestBody: DifyChatRequestBody
+): Promise<DifyChatExchange> {
+  const { apiUrl, apiKey } = getDifyConfig()
 
   const response = await fetch(`${apiUrl}/chat-messages`, {
     method: "POST",
@@ -63,7 +75,11 @@ export async function sendDifyMessage({
   }
 
   return {
-    answer: payload.answer,
-    conversationId: payload.conversation_id,
+    response: {
+      answer: payload.answer,
+      conversationId: payload.conversation_id,
+      workflowId: payload.workflow_run_id,
+    },
+    rawResponse: payload,
   }
 }
