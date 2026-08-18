@@ -14,11 +14,6 @@ export class DifyResponseError extends Error {
   }
 }
 
-export interface DifyChatExchange {
-  response: ChatResponse
-  rawResponse: DifyChatResponse
-}
-
 function isDifyChatResponse(payload: unknown): payload is DifyChatResponse {
   if (!payload || typeof payload !== "object") {
     return false
@@ -48,7 +43,7 @@ export function createDifyRequestBody({
 
 export async function sendDifyMessage(
   requestBody: DifyChatRequestBody
-): Promise<DifyChatExchange> {
+): Promise<ChatResponse> {
   const { apiUrl, apiKey } = getDifyConfig()
 
   const response = await fetch(`${apiUrl}/chat-messages`, {
@@ -75,11 +70,8 @@ export async function sendDifyMessage(
   }
 
   return {
-    response: {
-      answer: payload.answer,
-      conversationId: payload.conversation_id,
-      workflowId: payload.workflow_run_id,
-    },
-    rawResponse: payload,
+    answer: payload.answer,
+    conversationId: payload.conversation_id,
+    workflowId: payload.workflow_run_id,
   }
 }

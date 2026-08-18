@@ -11,14 +11,10 @@ const MAX_CONVERSATION_ID_LENGTH = 200
 const INTENTIONAL_BUG_PATTERN = /\blindo\b/i
 
 interface ChatLogEntry {
-  requestId: string
   conversationId: string | null
   workflowId: string | null
   input: string
-  frontendPayload: unknown
-  difyPayload: DifyChatRequestBody | null
   backendResponse: unknown
-  status: number
 }
 
 class IntentionalLindoError extends Error {
@@ -31,22 +27,13 @@ class IntentionalLindoError extends Error {
 function writeChatLog(entry: ChatLogEntry): void {
   const logEntry = {
     timestamp: new Date().toISOString(),
-    request_id: entry.requestId,
     conversation_id: entry.conversationId,
     workflow_id: entry.workflowId,
     user_input: entry.input,
-    frontend_payload: entry.frontendPayload,
-    dify_payload: entry.difyPayload,
     backend_response: entry.backendResponse,
-    status: entry.status,
   }
 
-  const serializedEntry = JSON.stringify(logEntry)
-  if (entry.status >= 500) {
-    console.error(serializedEntry)
-    return
-  }
-
+  const serializedEntry = JSON.stringify(logEntry, null, 2)
   console.info(serializedEntry)
 }
 
@@ -84,37 +71,26 @@ function isTimeoutError(error: unknown): boolean {
 }
 
 export async function POST(request: Request) {
-  const requestId = crypto.randomUUID()
   const payload: unknown = await request.json().catch(() => null)
   const chatRequest = validateRequest(payload)
 
   if (!chatRequest) {
     const errorMessage = "Pesan tidak valid."
     writeChatLog({
-      requestId,
       conversationId: null,
       workflowId: null,
       input: "",
-      frontendPayload: payload,
-      difyPayload: null,
       backendResponse: { error: errorMessage },
-      status: 400,
     })
     return jsonError(errorMessage, 400)
   }
 
-  let difyPayload: DifyChatRequestBody | null = null
-
   const logAndReturnError = (errorMessage: string, status: number) => {
     writeChatLog({
-      requestId,
       conversationId: chatRequest.conversationId || null,
       workflowId: null,
       input: chatRequest.message,
-      frontendPayload: chatRequest,
-      difyPayload,
       backendResponse: { error: errorMessage },
-      status,
     })
     return jsonError(errorMessage, status)
   }
@@ -124,18 +100,16 @@ export async function POST(request: Request) {
       throw new IntentionalLindoError()
     }
 
-    difyPayload = createDifyRequestBody(chatRequest)
-    const exchange = await sendDifyMessage(difyPayload)
-    const { response } = exchange
+    const difyPayload: DifyChatRequestBody = createDifyRequestBody(chatRequest)
+    const response = await sendDifyMessage(difyPayload)
     writeChatLog({
-      requestId,
       conversationId: response.conversationId,
       workflowId: response.workflowId ?? null,
       input: chatRequest.message,
-      frontendPayload: chatRequest,
-      difyPayload,
-      backendResponse: exchange.rawResponse,
-      status: 200,
+      backendResponse: {
+        answer: response.answer,
+        conversation_id: response.conversationId,
+      },
     })
     return Response.json(response satisfies ChatResponse)
   } catch (error) {
@@ -147,28 +121,16 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof DifyConfigurationError) {
-      console.error("Chat configuration is unavailable")
       return logAndReturnError("Layanan AI belum dikonfigurasi.", 503)
     }
 
     if (isTimeoutError(error)) {
-      console.error("Chat provider request timed out")
       return logAndReturnError(
         "Layanan AI membutuhkan waktu terlalu lama.",
         504
       )
     }
 
-    console.error("Chat provider request failed", {
-      name: error instanceof Error ? error.name : "UnknownError",
-      status:
-        error &&
-        typeof error === "object" &&
-        "status" in error &&
-        typeof error.status === "number"
-          ? error.status
-          : undefined,
-    })
     return logAndReturnError("Gagal berkomunikasi dengan layanan AI.", 502)
   }
 }
