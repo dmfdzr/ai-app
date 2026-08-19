@@ -18,11 +18,6 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV LOG_DIR=/app/logs
 
-RUN addgroup --system --gid 1000 student && adduser --system --uid 1000 student
-RUN mkdir -p /app/logs && chown student:student /app/logs
-COPY --from=builder --chown=student:student /app/.next/standalone ./
-COPY --from=builder --chown=student:student /app/.next/static ./.next/static
-
 USER student
 EXPOSE 3000
 CMD ["node", "server.js"]
