@@ -4,6 +4,7 @@ import {
 } from "@/lib/dify/client"
 import { DifyConfigurationError } from "@/lib/dify/config"
 import type { DifyChatRequestBody } from "@/lib/dify/types"
+import { writeLog } from "@/lib/logger"
 import type { ApiError, ChatRequest, ChatResponse } from "@/types/chat"
 
 const MAX_MESSAGE_LENGTH = 8000
@@ -33,8 +34,10 @@ function writeChatLog(entry: ChatLogEntry): void {
     status: entry.status,
   }
 
-  const serializedEntry = JSON.stringify(logEntry, null, 2)
-  console.info(serializedEntry)
+  writeLog(
+    entry.status >= 500 ? "error" : "info",
+    JSON.stringify(logEntry, null, 2)
+  )
 }
 
 function validateRequest(payload: unknown): ChatRequest | null {
@@ -115,7 +118,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof IntentionalLindoError) {
       return logAndReturnError(
-        "Terjadi kesalahan internal yang disengaja.",
+        "Terjadi kesalahan.",
         500
       )
     }

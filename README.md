@@ -137,6 +137,12 @@ user, jawaban dan conversation ID dari Dify, serta status HTTP. Input yang
 mengandung kata `Lindo` (case-insensitive) sengaja menghasilkan HTTP 500 untuk
 pengujian alur error.
 
+Log level `info` dan `error` ditulis ke console serta dipisahkan ke file rotasi
+harian `logs/application-info-YYYY-MM-DD.log` dan
+`logs/application-error-YYYY-MM-DD.log`. File di dalam container tidak persisten
+saat container dibuat ulang. Blok volume persisten sudah disiapkan dalam keadaan
+dikomentari di `docker-compose.yml` dan dapat diaktifkan saat diperlukan.
+
 ### Health check
 
 ```text
